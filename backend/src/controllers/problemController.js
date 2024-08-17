@@ -63,6 +63,9 @@ export const getProblems = async (req, res) => {
 		// combine queries using $and so that every condition (filter) must apply
 		const combinedQuery = queryConditions.length > 0 ? { $and: queryConditions } : {};
 
+		// Count total number of problems before pagination
+		const totalProblemsCount = await Problem.countDocuments(combinedQuery);
+
 		// Fetch problems from the database
 		// Apply the constructed query, sorting by contestId in descending order, and paginating
 		const problems = await Problem.find(combinedQuery)
@@ -72,7 +75,7 @@ export const getProblems = async (req, res) => {
 			.limit(limit);
 
 		// Send Problems as JSON response
-		res.json(problems);
+		res.json({ totalPages: Math.ceil(totalProblemsCount / limit), problems: problems });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error: "Failed to fetch problems" });

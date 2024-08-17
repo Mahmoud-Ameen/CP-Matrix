@@ -1,6 +1,6 @@
 // Libraries
 import express, { json } from "express";
-
+import cors from "cors";
 // Config files
 import { connectToDatabase, disconnectFromDatabase } from "./config/db.js";
 
@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(json());
-
+app.use(cors());
 // Routers
 app.use("/api/problems", problemRoutes);
 
