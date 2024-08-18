@@ -9,8 +9,27 @@ const fetchAndPopulateProblems = async () => {
 		const response = await axios.get("https://codeforces.com/api/problemset.problems");
 		const problems = response.data.result.problems;
 
-		// Insert data
-		await Problem.insertMany(problems);
+		// Extract unique contests
+		const contestsIds = [...new Set(problems.map((prob) => prob.contestId))];
+		const contests = await Contest.find({ id: { $in: contestsIds } }).select([
+			"id",
+			"division",
+		]);
+
+		// Create a mapping of contestId to contest division
+		const divisions = new Map();
+		contests.forEach(({ id, division }) => divisions.set(id, division));
+
+		// Create updatedProblems with division field added
+		const problemsWithDivision = problems.map((problem) => {
+			return {
+				...problem,
+				division: divisions.get(problem.contestId) || null,
+			};
+		});
+
+		// Insert problems to database
+		await Problem.insertMany(problemsWithDivision);
 
 		console.log("Problems data populated successfully.");
 	} catch (error) {

@@ -3,7 +3,7 @@ import Problem from "../models/problem.js";
 
 /*
 	req.query:
-		difficulties?: JSON string representing an object where keys are division names and values are arrays of problem indexes
+		divisions?: JSON string representing an object where keys are division names and values are arrays of problem indexes
 		tags?: JSON string representing an array of tags
 		
 		minRating?: Int
@@ -17,8 +17,8 @@ export const getProblems = async (req, res) => {
 	try {
 		// extract filters and pagination data from query params
 		let {
-			difficulties = null,
-			tags = [],
+			divisions = null,
+			tags = "[]",
 			minRating = null,
 			maxRating = null,
 			page = 1,
@@ -31,19 +31,20 @@ export const getProblems = async (req, res) => {
 		// Array to hold conditions for mongoDB query
 		const queryConditions = [];
 
-		// If specified difficulties (e.g., div2A, div3B, ...)
-		if (difficulties) {
-			const parsedDifficulties = JSON.parse(difficulties);
-			const diffConditions = await generateDifficultiesQueryConditions(parsedDifficulties);
+		// If specified divisions (e.g., div2A, div3B, ...)
+		if (divisions) {
+			const parsedDivisions = JSON.parse(divisions);
+			const diffConditions = await generateDifficultiesQueryConditions(parsedDivisions);
 
 			// add conditions to query
 			queryConditions.push(diffConditions);
 		}
 
 		// If specified tags (e.g., math, geometry, ...)
-		if (Array.isArray(tags) && tags.length > 0) {
-			const parsedTags = JSON.parse(tags);
+		const parsedTags = JSON.parse(tags);
+		if (Array.isArray(parsedTags) && parsedTags.length > 0) {
 			const tagsConditions = await generateTagsQueryConditions(parsedTags);
+			console.log(parsedTags);
 
 			// add conditions to query
 			queryConditions.push(tagsConditions);
@@ -69,13 +70,17 @@ export const getProblems = async (req, res) => {
 		// Fetch problems from the database
 		// Apply the constructed query, sorting by contestId in descending order, and paginating
 		const problems = await Problem.find(combinedQuery)
-			.select(["contestId", "index", "name", "tags", "rating", "-_id"])
+			.select(["contestId", "index", "name", "tags", "rating", "division", "-_id"])
 			.sort({ contestId: -1 })
 			.skip((page - 1) * limit)
 			.limit(limit);
 
 		// Send Problems as JSON response
-		res.json({ totalPages: Math.ceil(totalProblemsCount / limit), problems: problems });
+		res.json({
+			totalPages: Math.ceil(totalProblemsCount / limit),
+			totalProblems: totalProblemsCount,
+			problems: problems,
+		});
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error: "Failed to fetch problems" });

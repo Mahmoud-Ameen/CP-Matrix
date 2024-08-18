@@ -7,6 +7,7 @@ const problemSchema = new mongoose.Schema({
 	type: { type: String, required: true }, // "A,B,C,..."
 	tags: { type: [String], default: [] },
 	rating: { type: Number, default: null },
+	division: { type: String, default: null },
 });
 
 const Problem = mongoose.model("Problem", problemSchema);
