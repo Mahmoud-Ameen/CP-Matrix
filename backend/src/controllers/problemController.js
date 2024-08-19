@@ -34,16 +34,16 @@ export const getProblems = async (req, res) => {
 		// If specified divisions (e.g., div2A, div3B, ...)
 		if (divisions) {
 			const parsedDivisions = JSON.parse(divisions);
-			const diffConditions = await generateDifficultiesQueryConditions(parsedDivisions);
+			const divisionConditions = await generateDivisionsQuery(parsedDivisions);
 
 			// add conditions to query
-			queryConditions.push(diffConditions);
+			queryConditions.push(divisionConditions);
 		}
 
 		// If specified tags (e.g., math, geometry, ...)
 		const parsedTags = JSON.parse(tags);
 		if (Array.isArray(parsedTags) && parsedTags.length > 0) {
-			const tagsConditions = await generateTagsQueryConditions(parsedTags);
+			const tagsConditions = await generateTAgsQuery(parsedTags);
 			console.log(parsedTags);
 
 			// add conditions to query
@@ -87,28 +87,78 @@ export const getProblems = async (req, res) => {
 	}
 };
 
+export const getTags = async (req, res) => {
+	// Note that tags are basically static and rarely changes
+	// so using a static array in the memory would save time
+	// by avoiding database queries
+
+	// If that changes in the future, a different approach would be needed
+	const tags = [
+		"2-sat",
+		"binary search",
+		"bitmasks",
+		"brute force",
+		"chinese remainder theorem",
+		"constructive algorithms",
+		"data structures",
+		"dfs and similar",
+		"divide and conquer",
+		"dp",
+		"dsu",
+		"expression parsing",
+		"fft",
+		"flows",
+		"games",
+		"geometry",
+		"graph matchings",
+		"graphs",
+		"greedy",
+		"hashing",
+		"implementation",
+		"interactive",
+		"math",
+		"matrices",
+		"meet-in-the-middle",
+		"number theory",
+		"probabilities",
+		"schedules",
+		"shortest paths",
+		"sortings",
+		"string suffix structures",
+		"strings",
+		"ternary search",
+		"trees",
+		"two pointers",
+	];
+
+	res.json(tags);
+};
+
 /**
  * Helper function to create query conditions based on specified difficulties
- * parsedDifficulties: object where keys are division names and values are arrays of problem indexes
+ * parsedDivisions: object where keys are division names and values are arrays of problem indexes
  */
-const generateDifficultiesQueryConditions = async (parsedDifficulties) => {
-	if (!parsedDifficulties) return {};
+const generateDivisionsQuery = async (parsedDivisions) => {
+	if (!parsedDivisions) return {};
 
-	const difficultiesQueryConditions = [];
+	const divisionsQuery = [];
 
-	for (const division in parsedDifficulties) {
-		const indexes = parsedDifficulties[division];
+	for (const division in parsedDivisions) {
+		const indexes = parsedDivisions[division];
+		// Subtasks of a problem are considered part of the same problem
+		// e.g. Div2C1 and Div2C2 are considered Div2C
+		indexes.forEach((index) => indexes.push(index + "1", index + "2"));
 
 		const contestsIds = await Contest.find({ division }).distinct("id").exec();
-		difficultiesQueryConditions.push({
+		divisionsQuery.push({
 			contestId: { $in: contestsIds },
 			index: { $in: indexes },
 		});
 	}
 
-	// combine difficulty queries using or operator
-	// i.e. we want problems that are of any of the specified difficulties
-	if (difficultiesQueryConditions.length > 0) return { $or: difficultiesQueryConditions };
+	// combine division queries using or operator
+	// i.e. we want problems that belong to any of the specified divisions
+	if (divisionsQuery.length > 0) return { $or: divisionsQuery };
 
 	return {};
 };
@@ -117,7 +167,7 @@ const generateDifficultiesQueryConditions = async (parsedDifficulties) => {
  * Helper function to create query conditions based on tags
  * parsedTags: array of problem tags e.g. ["math","geometry"]
  */
-const generateTagsQueryConditions = async (parsedTags) => {
+const generateTAgsQuery = async (parsedTags) => {
 	if (!Array.isArray(parsedTags) || parsedTags.length == 0) return {};
 
 	let combinedCondition = [];

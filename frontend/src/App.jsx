@@ -1,13 +1,6 @@
-import { useState } from 'react'
-
+import ProblemsPage from "./pages/ProblemsPage";
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <h1> Front end  </h1>
-    </>
-  )
+	return <ProblemsPage />;
 }
 
-export default App
+export default App;

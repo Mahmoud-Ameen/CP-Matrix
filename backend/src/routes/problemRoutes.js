@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { getProblems } from "../controllers/problemController.js";
+import { getProblems, getTags } from "../controllers/problemController.js";
 
+const router = Router();
 /**
  * Get a list of problems with optional filters and pagination.
  *
@@ -16,7 +17,11 @@ import { getProblems } from "../controllers/problemController.js";
  * - A list of problems matching the filters and pagination settings.
  */
 
-const router = Router();
 router.get("/", getProblems);
+
+/**
+ *  Returns: A list of tags
+ * */
+router.get("/tags", getTags);
 
 export default router;

@@ -20,16 +20,17 @@ const fetchAndPopulateProblems = async () => {
 		const divisions = new Map();
 		contests.forEach(({ id, division }) => divisions.set(id, division));
 
-		// Create updatedProblems with division field added
-		const problemsWithDivision = problems.map((problem) => {
+		// Create updatedProblems with division field added and with unique tags
+		const updatedProblems = problems.map((problem) => {
 			return {
 				...problem,
 				division: divisions.get(problem.contestId) || null,
+				tags: [...new Set(problem.tags)],
 			};
 		});
 
 		// Insert problems to database
-		await Problem.insertMany(problemsWithDivision);
+		await Problem.insertMany(updatedProblems);
 
 		console.log("Problems data populated successfully.");
 	} catch (error) {
@@ -46,12 +47,11 @@ const fetchAndPopulateContests = async () => {
 		// Transform and insert data
 		const transformedContests = contests.map((contest) => {
 			let division = "";
-			if (contest.name.includes("Div. 1")) division = "div1";
-			else if (contest.name.includes("Div. 2")) division = "div2";
+			if (contest.name.includes("Div. 2")) division = "div2";
+			else if (contest.name.includes("Div. 1")) division = "div1";
 			else if (contest.name.includes("Div. 3")) division = "div3";
 			else if (contest.name.includes("Div. 4")) division = "div4";
-			else if (contest.name.includes("Div. 1 + Div. 2")) division = "div1+2";
-
+			else division = "other";
 			return {
 				id: contest.id,
 				name: contest.name,
