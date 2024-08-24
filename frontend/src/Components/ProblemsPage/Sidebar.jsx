@@ -16,12 +16,15 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 // App imports
-import MultiSelect from "./MultiSelect";
-import { fetchTags } from "../services/problemsService";
+import MultiSelect from "../common/MultiSelect";
+import { fetchTags } from "../../services/problemsService";
+import { useFilters } from "../../context/ProblemsPage/FiltersContext";
 
-const Sidebar = ({ open, onClose, applyFilters }) => {
+const FiltersSidebar = ({ open, onClose }) => {
+	const { filters, applyFilters } = useFilters();
+
 	// State to store selected filters
-	const [selectedTags, setSelectedTags] = useState([]);
+	const [selectedTags, setSelectedTags] = useState(filters.tags);
 	const [minRating, setMinRating] = useState(800);
 	const [maxRating, setMaxRating] = useState(3500);
 	const [selectedDivisions, setSelectedDivisions] = useState([]);
@@ -122,7 +125,7 @@ const Sidebar = ({ open, onClose, applyFilters }) => {
 				<Typography variant="h6">Filters</Typography>
 
 				{/* Tags Filter */}
-				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.light" }}>
+				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.default" }}>
 					<AccordionSummary expandIcon={<ExpandMoreIcon color="secondary" />}>
 						<Typography>Tags</Typography>
 					</AccordionSummary>
@@ -137,7 +140,7 @@ const Sidebar = ({ open, onClose, applyFilters }) => {
 				</Accordion>
 
 				{/* Rating Filter */}
-				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.light" }}>
+				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.default" }}>
 					<AccordionSummary expandIcon={<ExpandMoreIcon color="secondary" />}>
 						<Typography>Rating</Typography>
 					</AccordionSummary>
@@ -173,7 +176,7 @@ const Sidebar = ({ open, onClose, applyFilters }) => {
 				</Accordion>
 
 				{/* Divisions Filter */}
-				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.light" }}>
+				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.default" }}>
 					<AccordionSummary expandIcon={<ExpandMoreIcon color="secondary" />}>
 						<Typography>Divisions</Typography>
 					</AccordionSummary>
@@ -200,4 +203,4 @@ const Sidebar = ({ open, onClose, applyFilters }) => {
 		</Drawer>
 	);
 };
-export default Sidebar;
+export default React.memo(FiltersSidebar);

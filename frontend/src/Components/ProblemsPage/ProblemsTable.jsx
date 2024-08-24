@@ -1,5 +1,5 @@
 // React Imports
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 // Material UI imports
 import {
@@ -14,13 +14,18 @@ import {
 	TablePagination,
 	Link,
 	IconButton,
+	Checkbox,
 } from "@mui/material";
 
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+
 import { getRatingColor } from "../../utils/getRatingColor";
 
-const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, setRowsPerPage }) => {
+import { useProblems } from "../../context/ProblemsPage/ProblemsContext";
+import ProblemsTablePagination from "./ProblemsTablePagination";
+
+const ProblemsTable = () => {
 	// State to manage which columns to show and which to hide
 	const [visibleColumns, setVisibleColumns] = useState({
 		name: true,
@@ -29,24 +34,43 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 		division: true,
 	});
 
+	const { problems, selectedProblemsIds, setSelectedProblemsIds, loadProblems } = useProblems();
+
 	// Function to toggle a column's visibility
-	const toggleColumn = (column) => {
+	const toggleColumn = useCallback((column) => {
 		setVisibleColumns((prev) => ({
 			...prev,
 			[column]: !prev[column],
 		}));
-	};
+	});
 
-	// Change current pagination page
-	const handleChangePage = (event, newPage) => {
-		setPage(newPage);
-	};
+	// Handle selecting/deselecting a problem
+	const handleSelectProblem = useCallback((problem) => {
+		if (selectedProblemsIds.includes(problem.problemId))
+			setSelectedProblemsIds(selectedProblemsIds.filter((p) => p !== problem.problemId));
+		else setSelectedProblemsIds([...selectedProblemsIds, problem.problemId]);
+	});
 
-	// Change number of problems shown per page
-	const handleChangeRowsPerPage = (event) => {
-		setRowsPerPage(parseInt(event.target.value, 10));
-		setPage(0);
-	};
+	// Handle "Select All" checkbox
+	const handleSelectAll = useCallback((event) => {
+		if (event.target.checked) {
+			const allProblemsIdsOnPage = problems.map((problem) => problem.problemId);
+			setSelectedProblemsIds([
+				...selectedProblemsIds,
+				...allProblemsIdsOnPage.filter((id) => !selectedProblemsIds.includes(id)),
+			]);
+		} else {
+			const allProblemsIdsOnPage = problems.map((problem) => problem.problemId);
+			setSelectedProblemsIds(
+				selectedProblemsIds.filter((id) => !allProblemsIdsOnPage.includes(id))
+			);
+		}
+	});
+
+	// Check if all problems are selected
+	const isAllSelected =
+		problems.length > 0 &&
+		problems.every((problem) => selectedProblemsIds.includes(problem.problemId));
 
 	return (
 		<Paper>
@@ -55,6 +79,21 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 					{/* -----------<<<< Table Header >>>>----------- */}
 					<TableHead>
 						<TableRow>
+							{/* Select All Checkbox */}
+							<TableCell
+								padding="checkbox"
+								sx={{
+									borderBottom: "2px solid",
+									borderTop: "2px solid",
+									borderColor: "primary.main",
+								}}>
+								<Checkbox
+									indeterminate={selectedProblemsIds.length > 0 && !isAllSelected}
+									checked={isAllSelected}
+									onChange={handleSelectAll}
+								/>
+							</TableCell>
+
 							<TableCell
 								sx={{
 									borderBottom: "2px solid",
@@ -63,6 +102,7 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 								}}>
 								Name
 							</TableCell>
+
 							<TableCell
 								sx={{
 									borderBottom: "2px solid",
@@ -81,6 +121,7 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 									)}
 								</IconButton>
 							</TableCell>
+
 							<TableCell
 								sx={{
 									borderBottom: "2px solid",
@@ -100,6 +141,7 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 									)}
 								</IconButton>
 							</TableCell>
+
 							<TableCell
 								sx={{
 									borderBottom: "2px solid",
@@ -124,13 +166,18 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 					{/* -----------<<<< Table Body >>>>----------- */}
 					<TableBody>
 						{problems.map((problem) => (
-							<TableRow key={problem.contestId + problem.index}>
+							<TableRow
+								sx={{ outline: 0, borderColor: "transpant" }}
+								key={problem.contestId + problem.index}>
+								{/* -----------<<<< Problem Checkbox >>>>----------- */}
+								<TableCell padding="checkbox">
+									<Checkbox
+										checked={selectedProblemsIds.includes(problem.problemId)}
+										onChange={() => handleSelectProblem(problem)}
+									/>
+								</TableCell>
 								{/* -----------<<<< Problem Name >>>>----------- */}
-								<TableCell
-									sx={{
-										borderBottom: "1px solid",
-										borderColor: "background.light",
-									}}>
+								<TableCell>
 									<Link
 										href={`https://codeforces.com/contest/${problem.contestId}/problem/${problem.index}`}
 										target="_blank"
@@ -141,11 +188,7 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 									</Link>
 								</TableCell>
 								{/* -----------<<<< Problem Tags >>>>----------- */}
-								<TableCell
-									sx={{
-										borderBottom: "1px solid",
-										borderColor: "background.light",
-									}}>
+								<TableCell sx={{}}>
 									{problem.tags.map((tag) => (
 										<Chip
 											variant="outlined"
@@ -166,11 +209,7 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 									))}
 								</TableCell>
 								{/* -----------<<<< Problem Rating >>>>----------- */}
-								<TableCell
-									sx={{
-										borderBottom: "1px solid",
-										borderColor: "background.light",
-									}}>
+								<TableCell>
 									<Chip
 										label={problem.rating || "N/A"}
 										sx={{
@@ -189,11 +228,7 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 									/>
 								</TableCell>
 								{/* -----------<<<< Problem Division >>>>----------- */}
-								<TableCell
-									sx={{
-										borderBottom: "1px solid",
-										borderColor: "background.light",
-									}}>
+								<TableCell>
 									<Chip
 										label={
 											problem.division
@@ -216,17 +251,9 @@ const ProblemsTable = ({ problems, totalProblems, page, setPage, rowsPerPage, se
 				</Table>
 			</TableContainer>
 			{/* -----------<<<< Pagination >>>>----------- */}
-			<TablePagination
-				rowsPerPageOptions={[10, 25, 50]}
-				component="div"
-				count={totalProblems}
-				rowsPerPage={rowsPerPage}
-				page={page}
-				onPageChange={handleChangePage}
-				onRowsPerPageChange={handleChangeRowsPerPage}
-			/>
+			<ProblemsTablePagination />
 		</Paper>
 	);
 };
 
-export default ProblemsTable;
+export default React.memo(ProblemsTable);

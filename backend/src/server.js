@@ -6,6 +6,7 @@ import { connectToDatabase, disconnectFromDatabase } from "./config/db.js";
 
 // Route files
 import problemRoutes from "./routes/problemRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,8 +14,10 @@ const PORT = process.env.PORT || 3000;
 // Middlewares
 app.use(json());
 app.use(cors());
+
 // Routers
 app.use("/api/problems", problemRoutes);
+app.use("/api/users", userRoutes);
 
 // Event listeners for Shutting down the app
 const shutdown = async () => {

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL for the API
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
  * Fetches problems from the API with pagination and optional filters.
@@ -13,7 +13,7 @@ const API_BASE_URL = "http://localhost:3000/api";
  * @returns {Promise<object>} - A promise that resolves to the fetched data, including problems, total page count
  * 	and total problem count.
  */
-export const fetchProblems = async (page, rowsPerPage, filters) => {
+export const fetchFilteredProblems = async (page, rowsPerPage, filters) => {
 	// Initialize URLSearchParams for query parameters
 	const params = new URLSearchParams();
 
@@ -24,7 +24,7 @@ export const fetchProblems = async (page, rowsPerPage, filters) => {
 	// Add filters to the query parameters
 	for (const filter in filters)
 		if (Object.prototype.hasOwnProperty.call(filters, filter))
-			params.append(filter, JSON.stringify(filters[filter]));
+			params.append(filter.toLocaleLowerCase(), JSON.stringify(filters[filter]));
 
 	try {
 		// Send GET request to fetch problems with query parameters

@@ -8,11 +8,13 @@ const problemSchema = new mongoose.Schema({
 	tags: { type: [String], default: [] },
 	rating: { type: Number, default: null },
 	division: { type: String, default: null },
+	problemId: { type: String, required: true, unique: true },
 });
 
 const Problem = mongoose.model("Problem", problemSchema);
 
 problemSchema.index({ contestId: 1 });
 problemSchema.index({ rating: 1 });
+problemSchema.index({ problemId: 1 });
 
 export default Problem;

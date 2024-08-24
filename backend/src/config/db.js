@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({
+	path: "./src/secrets/.env",
+});
 
 const uri = process.env.MONGODB_URI;
 

@@ -1,13 +1,16 @@
 import Contest from "../models/contest.js";
 import Problem from "../models/problem.js";
 
+const MIN_PROBLEM_RATING = 800;
+const MAX_PROBLEM_RATING = 3500;
+
 /*
 	req.query:
 		divisions?: JSON string representing an object where keys are division names and values are arrays of problem indexes
 		tags?: JSON string representing an array of tags
 		
-		minRating?: Int
-		maxRating?: Int
+		minrating?: Int
+		maxrating?: Int
 
 		page?: page number for pagination (default: 1)
 		limit?: number of problems per page (default: 20)
@@ -19,8 +22,8 @@ export const getProblems = async (req, res) => {
 		let {
 			divisions = null,
 			tags = "[]",
-			minRating = null,
-			maxRating = null,
+			minrating: minRating = null,
+			maxrating: maxRating = null,
 			page = 1,
 			limit = 20,
 		} = req.query;
@@ -43,15 +46,17 @@ export const getProblems = async (req, res) => {
 		// If specified tags (e.g., math, geometry, ...)
 		const parsedTags = JSON.parse(tags);
 		if (Array.isArray(parsedTags) && parsedTags.length > 0) {
-			const tagsConditions = await generateTAgsQuery(parsedTags);
-			console.log(parsedTags);
+			const tagsConditions = await generateTagsQuery(parsedTags);
 
 			// add conditions to query
 			queryConditions.push(tagsConditions);
 		}
 
 		// If specified rating range conditions
-		if (minRating !== null || maxRating !== null) {
+		if (
+			(minRating !== null && minRating > MIN_PROBLEM_RATING) ||
+			(maxRating !== null && maxRating < MAX_PROBLEM_RATING)
+		) {
 			// Make sure to exclude problems with null rating
 			const ratingConditions = { $ne: null };
 
@@ -70,7 +75,16 @@ export const getProblems = async (req, res) => {
 		// Fetch problems from the database
 		// Apply the constructed query, sorting by contestId in descending order, and paginating
 		const problems = await Problem.find(combinedQuery)
-			.select(["contestId", "index", "name", "tags", "rating", "division", "-_id"])
+			.select([
+				"contestId",
+				"index",
+				"name",
+				"tags",
+				"rating",
+				"division",
+				"problemId",
+				"-_id",
+			])
 			.sort({ contestId: -1 })
 			.skip((page - 1) * limit)
 			.limit(limit);
@@ -167,7 +181,7 @@ const generateDivisionsQuery = async (parsedDivisions) => {
  * Helper function to create query conditions based on tags
  * parsedTags: array of problem tags e.g. ["math","geometry"]
  */
-const generateTAgsQuery = async (parsedTags) => {
+const generateTagsQuery = async (parsedTags) => {
 	if (!Array.isArray(parsedTags) || parsedTags.length == 0) return {};
 
 	let combinedCondition = [];
