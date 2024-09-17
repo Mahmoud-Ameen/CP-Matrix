@@ -1,24 +1,23 @@
+import { Request, Response } from "express";
 import Contest from "../models/contest.js";
 import Problem from "../models/problem.js";
 
 const MIN_PROBLEM_RATING = 800;
 const MAX_PROBLEM_RATING = 3500;
 
-/*
-	req.query:
-		divisions?: JSON string representing an object where keys are division names and values are arrays of problem indexes
-		tags?: JSON string representing an array of tags
-		
-		minrating?: Int
-		maxrating?: Int
+interface QueryParams {
+	divisions?: string;
+	tags?: string;
+	minrating?: number;
+	maxrating?: number;
+	handle?: string;
+	page?: number;
+	limit?: number;
+}
 
-		page?: page number for pagination (default: 1)
-		limit?: number of problems per page (default: 20)
-
-*/
-export const getProblems = async (req, res) => {
+export const getProblems = async (req: Request<{}, {}, {}, QueryParams>, res: Response) => {
 	try {
-		// extract filters and pagination data from query params
+		// Extract filters and pagination data from query params
 		let {
 			divisions = null,
 			tags = "[]",
@@ -32,33 +31,26 @@ export const getProblems = async (req, res) => {
 		page = Number(page);
 
 		// Array to hold conditions for mongoDB query
-		const queryConditions = [];
+		const queryConditions: any[] = [];
 
-		// If specified divisions (e.g., div2A, div3B, ...)
+		// Handle divisions filter
 		if (divisions) {
 			const parsedDivisions = JSON.parse(divisions);
 			const divisionConditions = await generateDivisionsQuery(parsedDivisions);
-
-			// add conditions to query
 			queryConditions.push(divisionConditions);
 		}
 
-		// If specified tags (e.g., math, geometry, ...)
+		// Handle tags filter
 		const parsedTags = JSON.parse(tags);
 		if (Array.isArray(parsedTags) && parsedTags.length > 0) {
 			const tagsConditions = await generateTagsQuery(parsedTags);
-
-			// add conditions to query
 			queryConditions.push(tagsConditions);
 		}
 
-		// If specified rating range conditions
-		if (
-			(minRating !== null && minRating > MIN_PROBLEM_RATING) ||
-			(maxRating !== null && maxRating < MAX_PROBLEM_RATING)
-		) {
-			// Make sure to exclude problems with null rating
-			const ratingConditions = { $ne: null };
+		// Handle rating range filter
+		if ((minRating !== null && minRating > MIN_PROBLEM_RATING)
+			|| (maxRating !== null && maxRating < MAX_PROBLEM_RATING)) {
+			const ratingConditions: any = { $ne: null };
 
 			if (minRating !== null) ratingConditions.$gte = Number(minRating);
 			if (maxRating !== null) ratingConditions.$lte = Number(maxRating);
@@ -66,7 +58,7 @@ export const getProblems = async (req, res) => {
 			queryConditions.push({ rating: ratingConditions });
 		}
 
-		// combine queries using $and so that every condition (filter) must apply
+		// Combine queries using $and so that every condition (filter) must apply
 		const combinedQuery = queryConditions.length > 0 ? { $and: queryConditions } : {};
 
 		// Count total number of problems before pagination
@@ -75,25 +67,17 @@ export const getProblems = async (req, res) => {
 		// Fetch problems from the database
 		// Apply the constructed query, sorting by contestId in descending order, and paginating
 		const problems = await Problem.find(combinedQuery)
-			.select([
-				"contestId",
-				"index",
-				"name",
-				"tags",
-				"rating",
-				"division",
-				"problemId",
-				"-_id",
-			])
+			.select(["contestId", "index", "name", "tags", "rating", "division", "problemId", "-_id"])
 			.sort({ contestId: -1 })
 			.skip((page - 1) * limit)
-			.limit(limit);
+			.limit(limit)
+			.lean();
 
 		// Send Problems as JSON response
 		res.json({
 			totalPages: Math.ceil(totalProblemsCount / limit),
 			totalProblems: totalProblemsCount,
-			problems: problems,
+			problems,
 		});
 	} catch (error) {
 		console.error(error);
@@ -101,7 +85,7 @@ export const getProblems = async (req, res) => {
 	}
 };
 
-export const getTags = async (req, res) => {
+export const getTags = async (req: Request, res: Response) => {
 	// Note that tags are basically static and rarely changes
 	// so using a static array in the memory would save time
 	// by avoiding database queries
@@ -148,11 +132,12 @@ export const getTags = async (req, res) => {
 	res.json(tags);
 };
 
+
 /**
  * Helper function to create query conditions based on specified difficulties
  * parsedDivisions: object where keys are division names and values are arrays of problem indexes
  */
-const generateDivisionsQuery = async (parsedDivisions) => {
+const generateDivisionsQuery = async (parsedDivisions: Record<string, string[]>) => {
 	if (!parsedDivisions) return {};
 
 	const divisionsQuery = [];
@@ -181,14 +166,10 @@ const generateDivisionsQuery = async (parsedDivisions) => {
  * Helper function to create query conditions based on tags
  * parsedTags: array of problem tags e.g. ["math","geometry"]
  */
-const generateTagsQuery = async (parsedTags) => {
+const generateTagsQuery = async (parsedTags: string[]) => {
 	if (!Array.isArray(parsedTags) || parsedTags.length == 0) return {};
 
-	let combinedCondition = [];
-	parsedTags.forEach((tag) => {
-		const tagExistCondition = { tags: tag }; // checks if [tags] include [tag]
-		combinedCondition.push(tagExistCondition);
-	});
+	const combinedCondition = parsedTags.map((tag) => ({ tags: tag }));
 
 	return combinedCondition.length > 0 ? { $or: combinedCondition } : {};
 };
