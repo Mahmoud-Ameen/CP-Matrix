@@ -1,7 +1,7 @@
-import { AuthenticatedUser } from './auth';
+import { AuthenticatedUser } from './shared'
 
 declare module 'express' {
-    export interface Request {
-        authenticatedUser?: AuthenticatedUser;
-    }
+	export interface Request {
+		authenticatedUser?: AuthenticatedUser
+	}
 }

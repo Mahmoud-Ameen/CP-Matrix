@@ -1,16 +1,14 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
+import mongoose, { Document, Schema, Model } from 'mongoose'
 
-// Define a TypeScript interface for User document
 interface IUser extends Document {
-	googleId: string;
-	email: string;
-	name: string;
-	avatar?: string;
-	createdAt: Date;
-	lastLogin: Date;
+	googleId: string
+	email: string
+	name: string
+	avatar?: string
+	createdAt: Date
+	lastLogin: Date
 }
 
-// Define the schema for User
 const userSchema: Schema<IUser> = new mongoose.Schema({
 	googleId: {
 		type: String,
@@ -37,12 +35,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
-});
+})
 
-// Indexes 
-userSchema.index({ googleId: 1 });
-userSchema.index({ email: 1 });
+// Indexes
+userSchema.index({ googleId: 1 })
+userSchema.index({ email: 1 })
 
 // Export the model
-const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
-export default User;
+const User: Model<IUser> = mongoose.model<IUser>('User', userSchema)
+export default User

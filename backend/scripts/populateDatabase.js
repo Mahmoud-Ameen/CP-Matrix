@@ -1,11 +1,11 @@
 import axios from "axios";
-import { connectToDatabase, disconnectFromDatabase } from "../src/config/db.js";
-import Problem from "../src/models/problem.js";
-import Contest from "../src/models/contest.js";
+import { connectToDatabase, disconnectFromDatabase } from "../dist/config/db.js";
+import Problem from "../dist/models/problem.js";
+import Contest from "../dist/models/contest.js";
 
 const fetchAndPopulateProblems = async () => {
 	try {
-		// Fetch data from Codeforces API
+		// Fetch problems from Codeforces API
 		const response = await axios.get("https://codeforces.com/api/problemset.problems");
 		const problems = response.data.result.problems;
 
@@ -26,6 +26,7 @@ const fetchAndPopulateProblems = async () => {
 				...problem,
 				division: divisions.get(problem.contestId) || null,
 				tags: [...new Set(problem.tags)],
+				problemId: `${problem.contestId}${problem.index}`,
 			};
 		});
 
