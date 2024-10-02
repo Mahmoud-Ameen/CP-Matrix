@@ -23,7 +23,6 @@ export const ProblemsProvider = React.memo(({ children }) => {
 		totalProblemsCount: 0,
 		problemsPerPage: 10,
 	});
-	console.log("problems provider updated");
 	const loadProblems = async ({ page, problemsPerPage }) => {
 		try {
 			// Adding one to page because it expects one-based page

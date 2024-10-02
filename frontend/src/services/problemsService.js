@@ -29,7 +29,10 @@ export const fetchFilteredProblems = async (page, rowsPerPage, filters) => {
 	try {
 		// Send GET request to fetch problems with query parameters
 		const response = await axios.get(`${API_BASE_URL}/problems`, { params });
-		return response.data;
+		return {
+			problems: response.data.problems,
+			totalProblems: response.data.totalProblemsCount,
+		};
 	} catch (error) {
 		console.error("Error fetching problems:", error);
 		throw error; // Re-throw error to handle it further up the chain
@@ -45,7 +48,7 @@ export const fetchTags = async () => {
 	try {
 		// Send GET request to fetch tags
 		const res = await axios.get(`${API_BASE_URL}/problems/tags`);
-		return res.data; // Return the list of tags received from the API
+		return res.data.tags; // Return the list of tags received from the API
 	} catch (error) {
 		console.error("Error fetching tags:", error); // Log error in case of failure
 	}

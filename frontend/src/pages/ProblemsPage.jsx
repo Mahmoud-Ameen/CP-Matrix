@@ -37,12 +37,7 @@ const ProblemsPage = memo(() => {
 							alignItems: "center",
 						}}>
 						{/* -----<<<<< Header Text >>>>>----- */}
-						<HeaderText
-							tags={tags}
-							minRating={minRating}
-							maxRating={maxRating}
-							divisions={divisions}
-						/>
+						<HeaderText />
 						{/* Button to toggle sidebar visibility */}
 						<Button onClick={toggleSidebar} variant="outlined" sx={{ m: 2 }}>
 							Filters
