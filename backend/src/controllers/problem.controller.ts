@@ -40,9 +40,9 @@ const getProblemsHandler = async (req: Request<{}, {}, {}, any>, res: Response) 
 	}
 }
 
-const getTagsHandler = (req: Request, res: Response) => {
+const getTagsHandler = async (req: Request, res: Response) => {
 	try {
-		const tags = problemService.getProblemsTags()
+		const tags = await problemService.getProblemsTags()
 		res.json({ tags })
 	} catch (error) {
 		console.error(error)
