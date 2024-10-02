@@ -24,7 +24,7 @@ const getProblemsHandler = async (req: Request<{}, {}, {}, any>, res: Response) 
 		// Parse and extract query params
 		const filters = parseProblemFilters(req.query)
 		const page = req.query.page ? Number(req.query.page) : 1
-		const rowsPerPage = req.query.rowsPerPage ? Number(req.query.rowsPerPage) : 20
+		const rowsPerPage = req.query.limit ? Number(req.query.limit) : 20
 
 		// User Problems service to get filtered problems and return them
 		const data = await problemService.getFilteredProblems(filters, page, rowsPerPage)
