@@ -10,19 +10,24 @@ export const FiltersProvider = ({ children }) => {
 		maxRating: 3500,
 		tags: [],
 		divisions: [],
+		codeforcesHandle: "",
+		status: "all", // can be "all", "solved", "attempted", or "new"
 	});
 
-	// Function to apply filters from the sidebar
-	// accepts divisions in the form of ["div<X>:<Index>"]
-	// for example ["div4:A","div1:C", ...]
-	const applyFilters = useCallback(({ tags, divisions, minRating, maxRating }) => {
-		setFilters({
-			tags,
-			minRating,
-			maxRating,
-			divisions,
-		});
-	}, []);
+	// Function to apply problem filters
+	const applyFilters = useCallback(
+		({ tags, divisions, minRating, maxRating, codeforcesHandle, status }) => {
+			setFilters({
+				tags,
+				minRating,
+				maxRating,
+				divisions,
+				codeforcesHandle,
+				status,
+			});
+		},
+		[]
+	);
 
 	const value = { filters, applyFilters };
 	return <FiltersContext.Provider value={value}>{children}</FiltersContext.Provider>;

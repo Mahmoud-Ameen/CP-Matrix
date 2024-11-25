@@ -40,7 +40,7 @@ const Navbar = () => {
 					left: { xs: 0, md: "50%" },
 					width: {
 						xs: "100%", // Full width on small screens
-						md: "80%", // 80% width on small screens and up
+						md: "80%", // 80% width on medium screens and up
 					},
 					transform: {
 						xs: "none", // No transform on small screens
@@ -58,10 +58,7 @@ const Navbar = () => {
 				<Toolbar
 					sx={{
 						display: "flex",
-						justifyContent: {
-							xs: "space-between",
-							md: "space-between",
-						},
+						justifyContent: "space-between",
 						alignItems: "center",
 					}}>
 					{/* Left Side: Links (Visible on large screens) */}
@@ -113,8 +110,8 @@ const Navbar = () => {
 								color="secondary"
 								sx={{
 									borderRadius: "20px",
-									padding: { xs: "5px 10px", md: "8px 20px" }, // Adjust padding for responsiveness
-									fontSize: { xs: "12px", md: "16px" }, // Adjust font size for responsiveness
+									padding: { xs: "5px 10px", md: "4px 20px" },
+									fontSize: { xs: "12px", md: "16px" },
 								}}
 								onClick={logout}>
 								Logout
@@ -124,6 +121,7 @@ const Navbar = () => {
 					</Box>
 				</Toolbar>
 			</AppBar>
+
 			{/* Drawer for Small Screens */}
 			<Drawer
 				anchor="left"

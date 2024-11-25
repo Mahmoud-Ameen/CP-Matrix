@@ -1,6 +1,6 @@
 import { TablePagination } from "@mui/material";
 import React from "react";
-import { useProblems } from "../../context/ProblemsPage/ProblemsContext";
+import { useProblems } from "../contexts/ProblemsContext";
 
 function ProblemsTablePagination() {
 	const { pagination, handleChangePage, handleChangeRowsPerPage } = useProblems();

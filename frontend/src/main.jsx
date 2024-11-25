@@ -53,6 +53,29 @@ const nestTheme = createTheme({
 		},
 	},
 });
+const lightTheme = createTheme({
+	palette: {
+		mode: "light",
+		primary: {
+			main: "#f23551",
+			light: "#FF6F6F",
+			dark: "#bc233a",
+		},
+		secondary: {
+			main: "#f23551",
+			light: "#4B5563",
+			dark: "#0F172A",
+		},
+		background: {
+			paper: "#eee", //  Dark Background
+			default: "#e5e5e5", //  Darker Gray Paper
+		},
+		text: {
+			primary: "#000", //  Light Gray Text
+			secondary: "#111", //  Medium Gray
+		},
+	},
+});
 
 const theme = nestTheme;
 

@@ -10,13 +10,16 @@ import {
 	Chip,
 	Box,
 } from "@mui/material";
+import PropTypes from "prop-types";
 
-// MultiSelect component: A reusable component for rendering a dropdown with multiple selectable options
-// Props:
-// - label: The label for the select input
-// - value: The currently selected options (array of strings)
-// - options: The list of options to display in the dropdown
-// - onChange: Function to handle changes in the selected options
+/**
+ * MultiSelect component for selecting multiple options from a dropdown
+ * @param {Object} props - Component props
+ * @param {string} props.label - Label for the select input
+ * @param {string[]} props.value - Array of selected values
+ * @param {string[]} props.options - Array of available options
+ * @param {Function} props.onChange - Callback function when selection changes
+ */
 const MultiSelect = ({ label, value, options, onChange }) => {
 	return (
 		<FormControl fullWidth>
@@ -71,4 +74,11 @@ const MultiSelect = ({ label, value, options, onChange }) => {
 	);
 };
 
-export default MultiSelect;
+MultiSelect.propTypes = {
+	label: PropTypes.string.isRequired,
+	value: PropTypes.arrayOf(PropTypes.string).isRequired,
+	options: PropTypes.arrayOf(PropTypes.string).isRequired,
+	onChange: PropTypes.func.isRequired,
+};
+
+export default React.memo(MultiSelect);

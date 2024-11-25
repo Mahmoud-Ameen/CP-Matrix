@@ -10,8 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
  * @param {number} rowsPerPage - The number of problems to fetch per page.
  * @param {object} filters - An object containing filters to apply (e.g., tags, divisions, etc.).
  *
- * @returns {Promise<object>} - A promise that resolves to the fetched data, including problems, total page count
- * 	and total problem count.
+ * @returns {Promise<object>} - A promise that resolves to the fetched data, including problems and pagination info.
  */
 export const fetchFilteredProblems = async (page, rowsPerPage, filters) => {
 	// Initialize URLSearchParams for query parameters
@@ -22,20 +21,26 @@ export const fetchFilteredProblems = async (page, rowsPerPage, filters) => {
 	params.append("limit", rowsPerPage);
 
 	// Add filters to the query parameters
-	for (const filter in filters)
-		if (Object.prototype.hasOwnProperty.call(filters, filter))
-			params.append(filter.toLocaleLowerCase(), JSON.stringify(filters[filter]));
+	for (const filter in filters) {
+		if (Array.isArray(filters[filter])) params.append(filter, filters[filter].join(","));
+		else if (filters[filter] !== null) params.append(filter, filters[filter]);
+	}
 
 	try {
 		// Send GET request to fetch problems with query parameters
 		const response = await axios.get(`${API_BASE_URL}/problems`, { params });
+
 		return {
-			problems: response.data.problems,
-			totalProblems: response.data.totalProblemsCount,
+			problems: response.data.data.problems,
+			totalProblems: response.data.meta.total,
+			currentPage: response.data.meta.page,
+			pageSize: response.data.meta.limit,
 		};
 	} catch (error) {
-		console.error("Error fetching problems:", error);
-		throw error; // Re-throw error to handle it further up the chain
+		if (error.response?.data?.error) {
+			throw new Error(error.response.data.error.message);
+		}
+		throw error;
 	}
 };
 
@@ -47,9 +52,32 @@ export const fetchFilteredProblems = async (page, rowsPerPage, filters) => {
 export const fetchTags = async () => {
 	try {
 		// Send GET request to fetch tags
-		const res = await axios.get(`${API_BASE_URL}/problems/tags`);
-		return res.data.tags; // Return the list of tags received from the API
+		const response = await axios.get(`${API_BASE_URL}/problems/tags`);
+		return response.data.data.tags; // Return the list of tags received from the API
 	} catch (error) {
-		console.error("Error fetching tags:", error); // Log error in case of failure
+		if (error.response?.data?.error) {
+			throw new Error(error.response.data.error.message);
+		}
+		throw error;
+	}
+};
+
+/**
+ * Synchronizes user's problem status with Codeforces.
+ *
+ * @param {string} codeforcesHandle - The user's Codeforces handle.
+ * @returns {Promise<string>} - A promise that resolves to a success message.
+ */
+export const syncUserProblems = async (codeforcesHandle) => {
+	try {
+		const response = await axios.post(`${API_BASE_URL}/userproblemstatus/sync`, null, {
+			params: { codeforcesHandle },
+		});
+		return response.data.data.message;
+	} catch (error) {
+		if (error.response?.data?.error) {
+			throw new Error(error.response.data.error.message);
+		}
+		throw error;
 	}
 };

@@ -1,7 +1,4 @@
-// React imports
-import React, { useEffect, useState } from "react";
-
-// Material UI imports
+import React, { useEffect, useState, useCallback } from "react";
 import {
 	Drawer,
 	Accordion,
@@ -12,13 +9,16 @@ import {
 	TextField,
 	Button,
 	Box,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-// App imports
-import MultiSelect from "../common/MultiSelect";
-import { fetchTags } from "../../services/problemsService";
-import { useFilters } from "../../context/ProblemsPage/FiltersContext";
+import { SyncButton } from "./SyncButton";
+import MultiSelect from "../../../Components/common/MultiSelect";
+import { fetchTags } from "../../../services/problemsService";
+import { useFilters } from "../contexts/FiltersContext";
 
 const FiltersSidebar = ({ open, onClose }) => {
 	const { filters, applyFilters } = useFilters();
@@ -28,6 +28,8 @@ const FiltersSidebar = ({ open, onClose }) => {
 	const [minRating, setMinRating] = useState(800);
 	const [maxRating, setMaxRating] = useState(3500);
 	const [selectedDivisions, setSelectedDivisions] = useState([]);
+	const [codeforcesHandle, setCodeforcesHandle] = useState(filters.codeforcesHandle);
+	const [problemStatus, setProblemStatus] = useState(filters.problemStatus || "all");
 
 	// State to store the available tags fetched from the server
 	const [tags, setTags] = useState([]);
@@ -47,43 +49,39 @@ const FiltersSidebar = ({ open, onClose }) => {
 
 	// Hardcoded list of divisions with problems indexes
 	const divisions = [
-		"div1:A",
-		"div1:B",
-		"div1:C",
-		"div1:D",
-		"div1:E",
-		"div1:F",
-
-		"div2:A",
-		"div2:B",
-		"div2:C",
-		"div2:D",
-		"div2:E",
-		"div2:F",
-
-		"div3:A",
-		"div3:B",
-		"div3:C",
-		"div3:D",
-		"div3:E",
-		"div3:F",
-		"div3:G",
-		"div3:H",
-
-		"div4:A",
-		"div4:B",
-		"div4:C",
-		"div4:D",
-		"div4:E",
-		"div4:F",
-		"div4:G",
-		"div4:H",
+		"div1A",
+		"div1B",
+		"div1C",
+		"div1D",
+		"div1E",
+		"div1F",
+		"div2A",
+		"div2B",
+		"div2C",
+		"div2D",
+		"div2E",
+		"div2F",
+		"div3A",
+		"div3B",
+		"div3C",
+		"div3D",
+		"div3E",
+		"div3F",
+		"div3G",
+		"div3H",
+		"div4A",
+		"div4B",
+		"div4C",
+		"div4D",
+		"div4E",
+		"div4F",
+		"div4G",
+		"div4H",
 	];
 
 	// Handle changes in selected tags
 	const handleTagChange = (event) => {
 		const value = event.target.value;
-
 		setSelectedTags(typeof value === "string" ? value.split(",") : value);
 	};
 
@@ -94,20 +92,32 @@ const FiltersSidebar = ({ open, onClose }) => {
 	};
 
 	// Handle reseting filters
-	const handleReset = () => {
-		setSelectedTags([]);
-		setMinRating(800);
-		setMaxRating(3500);
-		setSelectedDivisions([]);
-
-		applyFilters({
-			tags: [],
-			divisions: [],
+	const handleReset = useCallback(() => {
+		const initialState = {
+			selectedTags: [],
 			minRating: 800,
 			maxRating: 3500,
+			selectedDivisions: [],
+			codeforcesHandle: "",
+			problemStatus: "all",
+		};
+
+		setSelectedTags(initialState.selectedTags);
+		setMinRating(initialState.minRating);
+		setMaxRating(initialState.maxRating);
+		setSelectedDivisions(initialState.selectedDivisions);
+		setCodeforcesHandle(initialState.codeforcesHandle);
+		setProblemStatus(initialState.problemStatus);
+
+		applyFilters({
+			tags: initialState.selectedTags,
+			divisions: initialState.selectedDivisions,
+			minRating: initialState.minRating,
+			maxRating: initialState.maxRating,
+			codeforcesHandle: initialState.codeforcesHandle,
+			status: initialState.problemStatus,
 		});
-		onClose();
-	};
+	}, [applyFilters]);
 
 	// Handle applying filters
 	const handleApplyFilters = () => {
@@ -116,9 +126,24 @@ const FiltersSidebar = ({ open, onClose }) => {
 			divisions: selectedDivisions,
 			minRating,
 			maxRating,
+			codeforcesHandle,
+			status: problemStatus,
 		});
 		onClose();
 	};
+
+	// Handle successful sync
+	const handleSyncSuccess = () => {
+		// Re-apply filters to refresh the problem list with updated status
+		handleApplyFilters();
+	};
+
+	// Memoize handlers
+	const handleRatingChange = useCallback((_, [min, max]) => {
+		setMinRating(min);
+		setMaxRating(max);
+	}, []);
+
 	return (
 		<Drawer anchor="left" open={open} onClose={onClose}>
 			<Box sx={{ width: 350, padding: 4 }}>
@@ -147,10 +172,7 @@ const FiltersSidebar = ({ open, onClose }) => {
 					<AccordionDetails>
 						<Slider
 							value={[minRating, maxRating]}
-							onChange={(e, newValue) => {
-								setMinRating(newValue[0]);
-								setMaxRating(newValue[1]);
-							}}
+							onChange={handleRatingChange}
 							valueLabelDisplay="auto"
 							min={800}
 							max={3500}
@@ -190,6 +212,44 @@ const FiltersSidebar = ({ open, onClose }) => {
 					</AccordionDetails>
 				</Accordion>
 
+				{/* Problem Status Filter */}
+				<Accordion sx={{ borderBottom: "1px solid", borderColor: "background.default" }}>
+					<AccordionSummary expandIcon={<ExpandMoreIcon color="secondary" />}>
+						<Typography>Problem Status</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<TextField
+							fullWidth
+							label="Codeforces Handle"
+							value={codeforcesHandle}
+							onChange={(e) => setCodeforcesHandle(e.target.value)}
+							sx={{ mb: 2 }}
+						/>
+
+						{/* Sync Button */}
+						<Box sx={{ mb: 2 }}>
+							<SyncButton
+								codeforcesHandle={codeforcesHandle}
+								onSync={handleSyncSuccess}
+								disabled={!codeforcesHandle}
+							/>
+						</Box>
+
+						<FormControl fullWidth>
+							<InputLabel>Status</InputLabel>
+							<Select
+								value={problemStatus}
+								label="Status"
+								onChange={(e) => setProblemStatus(e.target.value)}>
+								<MenuItem value="all">All Problems</MenuItem>
+								<MenuItem value="solved">Solved</MenuItem>
+								<MenuItem value="attempted">Attempted</MenuItem>
+								<MenuItem value="new">New</MenuItem>
+							</Select>
+						</FormControl>
+					</AccordionDetails>
+				</Accordion>
+
 				{/* Buttons Container */}
 				<Box sx={{ my: 2, display: "flex", gap: 1 }}>
 					<Button variant="contained" color="secondary" onClick={handleApplyFilters}>
@@ -203,4 +263,5 @@ const FiltersSidebar = ({ open, onClose }) => {
 		</Drawer>
 	);
 };
+
 export default React.memo(FiltersSidebar);

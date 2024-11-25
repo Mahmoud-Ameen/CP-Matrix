@@ -1,5 +1,6 @@
 import userProblemStatusService from '../services/userProblemStatus.service.js'
 import { Request, Response } from 'express'
+import { successResponse, errorResponse } from '../utils/apiResponse.js'
 
 // Helper function for extracting and validating codeforcesHandle
 const extractCodeforcesHandle = (req: Request): string => {
@@ -17,10 +18,10 @@ const getUserProblemStatus = async (req: Request, res: Response) => {
 	try {
 		const codeforcesHandle = extractCodeforcesHandle(req)
 		const userProblemStatus = await userProblemStatusService.getUserProblemsStatus(codeforcesHandle)
-		res.json({ count: userProblemStatus.length, problems: userProblemStatus })
+		res.json(successResponse({ problems: userProblemStatus }, { total: userProblemStatus.length }))
 	} catch (error: any) {
 		console.error(error)
-		res.status(500).json({ error: error.message || 'Failed to fetch user problem status' })
+		res.status(500).json(errorResponse('INTERNAL_ERROR', error.message || 'Failed to fetch user problem status'))
 	}
 }
 
@@ -31,10 +32,14 @@ const syncUserProblemsStatus = async (req: Request, res: Response) => {
 	try {
 		const codeforcesHandle = extractCodeforcesHandle(req)
 		await userProblemStatusService.syncUserProblemsStatus(codeforcesHandle)
-		res.status(200).send('Successfully synced user problem status')
+		res.json(
+			successResponse({
+				message: 'Successfully synced user problem status',
+			})
+		)
 	} catch (error: any) {
 		console.error(error)
-		res.status(500).json({ error: error.message || 'Failed to sync user problem status' })
+		res.status(500).json(errorResponse('INTERNAL_ERROR', error.message || 'Failed to sync user problem status'))
 	}
 }
 
@@ -45,10 +50,10 @@ const getUserSolvedProblems = async (req: Request, res: Response) => {
 	try {
 		const codeforcesHandle = extractCodeforcesHandle(req)
 		const userSolvedProblems = await userProblemStatusService.getUserSolvedProblems(codeforcesHandle)
-		res.json({ count: userSolvedProblems.length, problems: userSolvedProblems })
+		res.json(successResponse({ problems: userSolvedProblems }, { total: userSolvedProblems.length }))
 	} catch (error: any) {
 		console.error(error)
-		res.status(500).json({ error: error.message || 'Failed to fetch user solved problems' })
+		res.status(500).json(errorResponse('INTERNAL_ERROR', error.message || 'Failed to fetch user solved problems'))
 	}
 }
 
@@ -59,10 +64,10 @@ const getUserUnsolvedProblems = async (req: Request, res: Response) => {
 	try {
 		const codeforcesHandle = extractCodeforcesHandle(req)
 		const userUnsolvedProblems = await userProblemStatusService.getUserUnsolvedProblems(codeforcesHandle)
-		res.json({ count: userUnsolvedProblems.length, problems: userUnsolvedProblems })
+		res.json(successResponse({ problems: userUnsolvedProblems }, { total: userUnsolvedProblems.length }))
 	} catch (error: any) {
 		console.error(error)
-		res.status(500).json({ error: error.message || 'Failed to fetch user unsolved problems' })
+		res.status(500).json(errorResponse('INTERNAL_ERROR', error.message || 'Failed to fetch user unsolved problems'))
 	}
 }
 

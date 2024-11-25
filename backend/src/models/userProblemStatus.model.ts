@@ -10,7 +10,12 @@ interface IUserProblemStatusDocument extends Document {
 
 // Create a Mongoose schema for UserProblemStatus
 const userProblemStatusSchema = new Schema<IUserProblemStatusDocument>({
-	codeforcesHandle: { type: String, required: true },
+	codeforcesHandle: {
+		type: String,
+		required: true,
+		set: (v: string) => v.toLowerCase(),
+		get: (v: string) => v.toLowerCase(),
+	},
 	problemId: { type: String, required: true },
 	status: { type: String, enum: [ProblemStatus.SOLVED, ProblemStatus.ATTEMPTED], required: true },
 })
